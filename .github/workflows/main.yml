@@ -1,0 +1,67 @@
+name: ML API CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  build-and-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Tests
+        run: |
+          python -m pytest tests/
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ml-api:${{ github.sha }} .
+
+      - name: Tag Latest Image
+        run: |
+          docker tag ml-api:${{ github.sha }} ml-api:latest
+
+      - name: Simulate Docker Login
+        run: |
+          echo "Skipping Docker Login"
+
+      - name: Simulate Docker Push
+        run: |
+          echo "Skipping Docker Push"
+
+      - name: Create Prediction Artifacts
+        run: |
+          mkdir -p predictions
+
+          echo '{"class_label":"5","probabilities":[0.9,0.1]}' \
+          > predictions/example1.json
+
+          echo '{"class_label":"7","probabilities":[0.1,0.9]}' \
+          > predictions/example2.json
+
+      - name: Upload Prediction Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prediction-examples
+          path: predictions/

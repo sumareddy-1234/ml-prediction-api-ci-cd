@@ -1,0 +1,21 @@
+services:
+
+  ml_api:
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: ml_prediction_api
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./models:/app/models
+
+    environment:
+      MODEL_PATH: /app/models/my_classifier_model.h5
+      LOG_LEVEL: INFO
+
+    restart: on-failure
