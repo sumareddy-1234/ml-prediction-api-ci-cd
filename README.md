@@ -1,197 +1,179 @@
-# 🚀 ML Prediction API with CI/CD
+# 🚀 ML Prediction API & CI/CD Pipeline
 
-A production-ready Machine Learning Prediction API built using **FastAPI**, **TensorFlow/Keras**, **Docker**, and **GitHub Actions**. The project demonstrates how to deploy a trained image classification model as a scalable REST API, containerize it using Docker, and automate testing and deployment workflows using CI/CD practices.
+[![Python Version](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.121.0-009688.svg?style=flat&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.19.0-FF6F00.svg?style=flat&logo=tensorflow)](https://www.tensorflow.org/)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED.svg?style=flat&logo=docker)](https://www.docker.com/)
+[![CI/CD](https://github.com/hp/ml-predictionAPI-ci-cd/actions/workflows/main.yml/badge.svg)](https://github.com/hp/ml-predictionAPI-ci-cd/actions)
 
----
-
-# 📌 Project Overview
-
-Machine learning models are often developed in notebooks but rarely deployed in a production-ready manner. This project bridges that gap by transforming a trained Keras image classification model into a RESTful API that can accept image uploads and return predictions in real time.
-
-The application follows MLOps best practices including:
-
-* Model serving through FastAPI
-* Docker containerization
-* Automated testing with Pytest
-* CI/CD automation using GitHub Actions
-* Environment variable configuration
-* Structured logging and error handling
+A production-ready Image Classification REST API built with FastAPI and TensorFlow. This project demonstrates end-to-end MLOps practices including model serving, robust error handling, containerization, and automated CI/CD workflows. The current implementation predicts handwritten digits (0-9) using a pre-trained convolutional neural network.
 
 ---
 
-# ✨ Features
+## 📖 Table of Contents
 
-* RESTful API built with FastAPI
-* Image Classification using TensorFlow/Keras
-* Health Monitoring Endpoint
-* Image Upload Support
-* Input Validation
-* File Size Validation
-* Error Handling with Appropriate HTTP Status Codes
-* Dockerized Deployment
-* Docker Compose Support
-* Automated Unit Testing
-* GitHub Actions CI/CD Pipeline
-* Environment Variable Configuration
-* Prediction Example Artifacts
-
----
-
-# 🛠️ Technology Stack
-
-| Category            | Technology         |
-| ------------------- | ------------------ |
-| Language            | Python 3.11        |
-| Framework           | FastAPI            |
-| ML Framework        | TensorFlow / Keras |
-| Image Processing    | Pillow             |
-| Numerical Computing | NumPy              |
-| Data Handling       | Pandas             |
-| Testing             | Pytest             |
-| Containerization    | Docker             |
-| Orchestration       | Docker Compose     |
-| CI/CD               | GitHub Actions     |
-| API Server          | Uvicorn            |
+- [Project Overview](#-project-overview)
+- [Key Features](#-key-features)
+- [Architecture Overview](#-architecture-overview)
+- [Technology Stack](#-technology-stack)
+- [Folder Structure](#-folder-structure)
+- [Installation](#-installation)
+- [Running Locally](#-running-locally)
+- [Docker Usage](#-docker-usage)
+- [API Endpoints](#-api-endpoints)
+- [CI/CD Workflow](#-cicd-workflow)
+- [Testing Instructions](#-testing-instructions)
+- [Environment Variables](#-environment-variables)
+- [Future Improvements](#-future-improvements)
+- [License](#-license)
 
 ---
 
-# 📂 Project Structure
+## 🌟 Project Overview
+
+The ML Prediction API provides a scalable and robust web service for evaluating image classification models. Built entirely in Python, it exposes a primary endpoint that accepts image uploads, performs rigorous preprocessing (converting to 28x28 grayscale tensors), and feeds the data into a TensorFlow model to generate real-time predictions with associated probabilities.
+
+---
+
+## ✨ Key Features
+
+- **High-Performance API:** Asynchronous request handling using FastAPI.
+- **Robust Model Serving:** Lazy-loading of TensorFlow models to optimize memory and minimize startup time.
+- **Strict Validation:** Real-time input validation checking file size (max 5MB) and MIME types (PNG/JPEG only).
+- **Containerization:** Multi-stage Docker builds to ensure minimal image sizes and secure runtime environments.
+- **Automated CI/CD:** Complete GitHub Actions pipeline for continuous integration, automated testing, and container image builds.
+- **Comprehensive Testing:** Mock-driven unit testing of all API layers utilizing `pytest`.
+
+---
+
+## 🏗 Architecture Overview
+
+The system architecture follows a decoupled approach for serving Machine Learning models:
+
+1. **Client Request:** The user sends a multipart/form-data POST request containing an image to the `/predict` endpoint.
+2. **API Layer (`src/main.py`):** FastAPI handles routing, parameter validation, size constraints, and error formatting.
+3. **ML Layer (`src/model.py`):** 
+   - **Preprocessing:** The image bytes are ingested by Pillow, converted to grayscale, resized to 28x28, normalized (0.0 - 1.0), and reshaped into a tensor `(1, 28, 28, 1)`.
+   - **Inference:** The tensor is passed into the pre-loaded Keras/TensorFlow model (`my_classifier_model.h5`).
+4. **Response:** The index of the highest probability is mapped to the corresponding class label ("0"-"9"), and returned alongside the full probability distribution array.
+
+---
+
+## 🛠 Technology Stack
+
+- **Core:** Python 3.11
+- **Web Framework:** FastAPI, Uvicorn, Python-Multipart
+- **Machine Learning:** TensorFlow 2.19.0, NumPy, Pandas, Pillow
+- **Testing:** Pytest, HTTPX
+- **DevOps:** Docker, Docker Compose, GitHub Actions
+
+---
+
+## 📂 Folder Structure
 
 ```text
-ML-PredictionAPI-CICD/
-
+.
 ├── .github/
 │   └── workflows/
-│       └── main.yml
-│
+│       └── main.yml           # GitHub Actions CI/CD pipeline configuration
+├── models/
+│   └── my_classifier_model.h5 # Pre-trained TensorFlow/Keras model
 ├── src/
 │   ├── __init__.py
-│   ├── main.py
-│   └── model.py
-│
-├── models/
-│   └── my_classifier_model.h5
-│
+│   ├── main.py                # FastAPI application and endpoint definitions
+│   └── model.py               # ML inference and image preprocessing logic
 ├── tests/
-│   └── test_api.py
-│
-├── predictions/
-│   ├── example1.json
-│   └── example2.json
-│
-├── scripts/
-│   └── train_model.py
-│
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-├── .env.example
-├── .gitignore
-├── .dockerignore
-└── README.md
+│   └── test_api.py            # Unit tests for the endpoints and core logic
+├── .env.example               # Template for environment variables
+├── docker-compose.yml         # Docker Compose services definition
+├── Dockerfile                 # Multi-stage Docker build instructions
+├── requirements.txt           # Python dependencies
+└── README.md                  # Project documentation (this file)
 ```
 
 ---
 
-# ⚙️ Local Setup
+## ⚙️ Installation
 
-## Clone Repository
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/ml-predictionAPI-ci-cd.git
+   cd ml-predictionAPI-ci-cd
+   ```
+
+2. **Create a virtual environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows use: venv\Scripts\activate
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+
+4. **Configure Environment:**
+   ```bash
+   cp .env.example .env
+   # Edit .env to suit your environment configuration
+   ```
+
+---
+
+## 🚀 Running Locally
+
+Once installed, start the API using Uvicorn:
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-cd ML-PredictionAPI-CICD
+uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## Create Virtual Environment
+The application will be accessible at:
+- **API Base:** `http://localhost:8000`
+- **Interactive Swagger UI:** `http://localhost:8000/docs`
+- **ReDoc Documentation:** `http://localhost:8000/redoc`
 
-### Windows
+---
+
+## 🐳 Docker Usage
+
+To ensure a consistent environment, you can run the API entirely inside Docker.
+
+### Using Docker Compose (Recommended)
+This will build the image and mount the local `models` directory:
 
 ```bash
-python -m venv venv
-venv\Scripts\activate
+docker-compose up --build -d
 ```
 
-### Linux / Mac
-
+### Using Docker CLI
+Build the multi-stage image:
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+docker build -t ml-prediction-api:latest .
 ```
 
-## Install Dependencies
-
+Run the container:
 ```bash
-pip install -r requirements.txt
+docker run -d -p 8000:8000 \
+  -v $(pwd)/models:/app/models \
+  -e MODEL_PATH=/app/models/my_classifier_model.h5 \
+  --name ml_api ml-prediction-api:latest
 ```
 
 ---
 
-# ▶️ Running the Application
+## 🌐 API Endpoints
 
-Start the API:
+### 1. Health Check
+Checks if the API is responsive and the ML model is successfully loaded in memory.
 
-```bash
-uvicorn src.main:app --reload
-```
-
-Open Swagger Documentation:
-
-```text
-http://localhost:8000/docs
-```
-
-Open Health Endpoint:
-
-```text
-http://localhost:8000/health
-```
-
----
-
-# 🐳 Docker Deployment
-
-## Build Docker Image
-
-```bash
-docker build -t ml-api .
-```
-
-## Run Docker Container
-
-```bash
-docker run -p 8000:8000 ml-api
-```
-
----
-
-# 🐳 Docker Compose
-
-Run the application using Docker Compose:
-
-```bash
-docker compose up --build
-```
-
-Stop containers:
-
-```bash
-docker compose down
-```
-
----
-
-# 📡 API Endpoints
-
-## Health Check
-
-### Request
-
+**Request:**
 ```http
 GET /health
 ```
 
-### Response
-
+**Response (200 OK):**
 ```json
 {
   "status": "ok",
@@ -199,182 +181,87 @@ GET /health
 }
 ```
 
----
+### 2. Predict Image
+Upload an image for the model to classify.
 
-## Image Prediction
-
-### Request
-
+**Request:**
 ```http
 POST /predict
+Content-Type: multipart/form-data
 ```
+| Form Data Field | Type | Description |
+| --- | --- | --- |
+| `file` | `File` | The image file (PNG/JPEG) to predict. Max size 5MB. |
 
-### Supported Formats
-
-* PNG
-* JPEG
-* JPG
-
-### Example CURL Request
-
+**Example using cURL:**
 ```bash
-curl -X POST \
--F "file=@digit.png" \
-http://localhost:8000/predict
+curl -X POST "http://localhost:8000/predict" \
+  -H "accept: application/json" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@test_image.png;type=image/png"
 ```
 
-### Example Response
-
+**Response (200 OK):**
 ```json
 {
   "class_label": "5",
   "probabilities": [
-    0.01,
-    0.01,
-    0.01,
-    0.90,
-    0.01,
-    0.01,
-    0.01,
-    0.01,
-    0.01,
-    0.02
+    0.012, 0.001, 0.003, 0.054, 0.011, 0.892, 0.015, 0.004, 0.006, 0.002
   ]
 }
 ```
 
+**Error Responses:**
+- `400 Bad Request`: When the file is not PNG/JPEG, or the file size exceeds 5MB.
+- `422 Unprocessable Entity`: When the image format is corrupted or missing.
+- `500 Internal Server Error`: For unexpected preprocessing or inference failures.
+
 ---
 
-# 🧪 Testing
+## 🔄 CI/CD Workflow
 
-Run all tests:
+This repository utilizes **GitHub Actions** (`.github/workflows/main.yml`) for continuous integration and delivery. 
 
+The pipeline runs automatically on `push` or `pull_request` to the `main` branch and executes the following steps:
+1. **Source Checkout & Environment Setup:** Pulls code and configures Python 3.11.
+2. **Dependency Installation:** Upgrades pip and installs packages from `requirements.txt`.
+3. **Automated Testing:** Executes the `pytest` suite against the API.
+4. **Container Build:** Builds the Docker image locally to verify multi-stage configuration.
+5. **Artifact Generation:** Simulates model output predictions and uploads them as workflow artifacts.
+
+---
+
+## 🧪 Testing Instructions
+
+The project uses `pytest` for unit testing with mocked ML inferences to ensure fast and isolated API testing.
+
+To run the test suite:
 ```bash
-python -m pytest tests/
+python -m pytest tests/ -v
 ```
 
-Covered test scenarios:
-
-* Health Endpoint Testing
-* Prediction Endpoint Testing
-* Invalid File Type Validation
-* Missing File Validation
+This will run all tests, including:
+- Checking the `/health` endpoint.
+- Validating the `/predict` endpoint with mock valid images.
+- Asserting correct HTTP codes for invalid file types and missing payloads.
 
 ---
 
-# 🔄 CI/CD Pipeline
+## ⚙️ Environment Variables
 
-The project includes a GitHub Actions workflow that automatically executes whenever code is pushed to the main branch or a pull request is created.
+Configuration is managed via environment variables. Refer to `.env.example`.
 
-## Workflow Steps
-
-1. Checkout Repository
-2. Setup Python Environment
-3. Install Dependencies
-4. Execute Unit Tests
-5. Build Docker Image
-6. Generate Prediction Artifacts
-7. Upload Artifacts
-
-## Trigger Events
-
-```yaml
-push:
-  branches:
-    - main
-
-pull_request:
-  branches:
-    - main
-```
+| Variable | Default Value | Description |
+| --- | --- | --- |
+| `MODEL_PATH` | `models/my_classifier_model.h5` | Absolute or relative path to the pre-trained TensorFlow model. |
+| `LOG_LEVEL` | `INFO` | Standard Python logging levels (`DEBUG`, `INFO`, `WARNING`, `ERROR`). |
 
 ---
 
-# 📁 Prediction Examples
+## 🔮 Future Improvements
 
-Example prediction outputs are stored in:
-
-```text
-predictions/
-```
-
-Files:
-
-```text
-example1.json
-example2.json
-```
-
-These demonstrate successful API inference responses.
-
----
-
-# 🌎 Environment Variables
-
-Example configuration:
-
-```env
-MODEL_PATH=models/my_classifier_model.h5
-LOG_LEVEL=INFO
-```
-
----
-
-# 📈 Future Enhancements
-
-* JWT Authentication
-* Kubernetes Deployment
-* Docker Registry Integration
-* Model Monitoring
-* Prometheus Metrics
-* Grafana Dashboards
-* MLflow Integration
-* Multi-Model Serving
-* Cloud Deployment (AWS/GCP/Azure)
-
----
-
-## Screenshots
-
-### Swagger UI
-
-![Swagger UI](screenshots/swagger-ui.png)
-
-### Health Endpoint
-
-![Health Endpoint](screenshots/health-endpoint.png)
-
-### GitHub Actions Success
-
-![GitHub Actions](screenshots/github-actions-success.png)
-
----
-
-# 🎯 Learning Outcomes
-
-Through this project, the following concepts were implemented:
-
-* Machine Learning Model Serving
-* FastAPI Development
-* Docker Containerization
-* REST API Design
-* Automated Testing
-* Continuous Integration
-* Continuous Deployment
-* MLOps Fundamentals
-* Environment Configuration Management
-* Production-Ready API Development
-
----
-
-# 📜 License
-
-This project is intended for educational and portfolio purposes.
-
----
-
-# 👨‍💻 Author
-
-Developed as part of an MLOps-focused Machine Learning Engineering project demonstrating model deployment, containerization, testing, and CI/CD automation.
-
-Pavan Teja
+- **Model Registry Integration:** Integrate MLflow or Weights & Biases for versioning and tracking model performance.
+- **Monitoring & Metrics:** Add Prometheus metrics to track inference latency and prediction distributions.
+- **Batch Predictions:** Introduce an endpoint to handle bulk/batch image predictions asynchronously via Celery or Kafka.
+- **GPU Acceleration:** Enhance the Docker image to utilize NVIDIA runtime (`nvidia-docker`) for high-throughput GPU inference.
+- **Code Quality Checks:** Add `flake8`, `black`, and `mypy` steps to the GitHub Actions pipeline.

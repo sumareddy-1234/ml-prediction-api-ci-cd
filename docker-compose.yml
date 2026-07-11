@@ -9,7 +9,7 @@ services:
     container_name: ml_prediction_api
 
     ports:
-      - "8000:8000"
+      - "8080:8000"
 
     volumes:
       - ./models:/app/models
